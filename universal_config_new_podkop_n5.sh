@@ -588,19 +588,7 @@ else
 fi
 
 
-#####after test delete 
-DESCRIPTION=$(ubus call system board | jsonfilter -e '@.release.description')
-VERSION=$(ubus call system board | jsonfilter -e '@.release.version')
-findKey="RouteRich"
-findVersion="24.10.2"
 
-if echo "$DESCRIPTION" | grep -qi -- "$findKey" && printf '%s\n%s\n' "$findVersion" "$VERSION" | sort -V | tail -n1 | grep -qx -- "$VERSION"; then
-	printf "\033[32;1mThis new firmware. Running scprit...\033[0m\n"
-else
-	printf "\033[32;1mThis old firmware.\nTo use this script, update your firmware to the latest version....\033[0m\n"
-	exit 1
-fi
-####after test delete 
 
 
 echo "Update list packages..."
@@ -608,8 +596,8 @@ opkg update
 
 checkPackageAndInstall "coreutils-base64" "1"
 
-encoded_code="IyEvYmluL3NoCgojINCn0YLQtdC90LjQtSDQvNC+0LTQtdC70Lgg0LjQtyDRhNCw0LnQu9CwCm1vZGVsPSQoY2F0IC90bXAvc3lzaW5mby9tb2RlbCkKCiMg0J/RgNC+0LLQtdGA0LrQsCwg0YHQvtC00LXRgNC20LjRgiDQu9C4INC80L7QtNC10LvRjCDRgdC70L7QstC+ICJSb3V0ZXJpY2giCmlmICEgZWNobyAiJG1vZGVsIiB8IGdyZXAgLXEgIlJvdXRlcmljaCI7IHRoZW4KICAgIGVjaG8gIlRoaXMgc2NyaXB0IGZvciByb3V0ZXJzIFJvdXRlcmljaC4uLiBJZiB5b3Ugd2FudCB0byB1c2UgaXQsIHdyaXRlIHRvIHRoZSBlcCBjaGF0IFRHIEByb3V0ZXJpY2giCiAgICBleGl0IDEKZmk="
-eval "$(echo "$encoded_code" | base64 --decode)"
+#encoded_code="IyEvYmluL3NoCgojINCn0YLQtdC90LjQtSDQvNC+0LTQtdC70Lgg0LjQtyDRhNCw0LnQu9CwCm1vZGVsPSQoY2F0IC90bXAvc3lzaW5mby9tb2RlbCkKCiMg0J/RgNC+0LLQtdGA0LrQsCwg0YHQvtC00LXRgNC20LjRgiDQu9C4INC80L7QtNC10LvRjCDRgdC70L7QstC+ICJSb3V0ZXJpY2giCmlmICEgZWNobyAiJG1vZGVsIiB8IGdyZXAgLXEgIlJvdXRlcmljaCI7IHRoZW4KICAgIGVjaG8gIlRoaXMgc2NyaXB0IGZvciByb3V0ZXJzIFJvdXRlcmljaC4uLiBJZiB5b3Ugd2FudCB0byB1c2UgaXQsIHdyaXRlIHRvIHRoZSBlcCBjaGF0IFRHIEByb3V0ZXJpY2giCiAgICBleGl0IDEKZmk="
+#eval "$(echo "$encoded_code" | base64 --decode)"
 
 #проверка и установка пакетов AmneziaWG
 install_awg_packages
@@ -617,49 +605,24 @@ install_awg_packages
 checkPackageAndInstall "jq" "1"
 checkPackageAndInstall "curl" "1"
 checkPackageAndInstall "unzip" "1"
-#checkPackageAndInstall "sing-box" "1"
+
 checkPackageAndInstall "opera-proxy" "1"
 checkPackageAndInstall "zapret" "1"
+opkg remove --force-removal-of-dependent-packages "sing-box"
 
-###########
-manage_package "podkop" "enable" "stop"
-
-PACKAGE="sing-box"
-REQUIRED_VERSION="1.11.15"
-
-INSTALLED_VERSION=$(opkg list-installed | grep "^$PACKAGE" | cut -d ' ' -f 3)
-if [ -n "$INSTALLED_VERSION" ] && [ "$INSTALLED_VERSION" != "$REQUIRED_VERSION" ]; then
-    echo "Version package $PACKAGE not equal $REQUIRED_VERSION. Removed packages..."
-	opkg remove --force-removal-of-dependent-packages $PACKAGE
+findVersion="1.12.0"
+if opkg list-installed | grep "^sing-box-tiny" && printf '%s\n%s\n' "$findVersion" "$VERSION" | sort -V | tail -n1 | grep -qx -- "$VERSION"; then
+	printf "\033[32;1mInstalled new sing-box-tiny. Running scprit...\033[0m\n"
+else
+	printf "\033[32;1mInstalled old sing-box-tiny or not install sing-box-tiny. Reinstall sing-box-tiny...\033[0m\n"
+	manage_package "podkop" "enable" "stop"
+	opkg remove --force-removal-of-dependent-packages "sing-box-tiny"
+	checkPackageAndInstall "sing-box-tiny" "1"
 fi
 
-INSTALLED_VERSION=$(opkg list-installed | grep "^$PACKAGE")
-if [ -z "$INSTALLED_VERSION" ]; then
-	PACK_NAME="sing-box"
-	AWG_DIR="/tmp/$PACK_NAME"
-	SINGBOX_FILENAME="sing-box_1.11.15_openwrt_aarch64_cortex-a53.ipk"
-	BASE_URL="https://github.com/SagerNet/sing-box/releases/download/v1.11.15/"
-	DOWNLOAD_URL="${BASE_URL}${SINGBOX_FILENAME}"
-	mkdir -p "$AWG_DIR"
-	#echo $DOWNLOAD_URL
-
-	wget -O "$AWG_DIR/$SINGBOX_FILENAME" "$DOWNLOAD_URL"
-	if [ $? -eq 0 ]; then
-		echo "$PACK_NAME file downloaded successfully"
-	else
-		echo "Error downloading $PACK_NAME. Please, install $PACK_NAME manually and run the script again"
-		exit 1
-	fi
-			
-	opkg install "$AWG_DIR/$SINGBOX_FILENAME"
-	if [ $? -eq 0 ]; then
-		echo "$PACK_NAME file installing successfully"
-	else
-		echo "Error installing $PACK_NAME. Please, install $PACK_NAME manually and run the script again"
-		exit 1
-	fi
-fi
-###########
+opkg upgrade amneziawg-tools
+opkg upgrade kmod-amneziawg
+opkg upgrade luci-app-amneziawg
 
 opkg upgrade zapret
 opkg upgrade luci-app-zapret
@@ -1272,7 +1235,7 @@ case $varByPass in
 esac
 
 PACKAGE="podkop"
-REQUIRED_VERSION="v0.4.11-r1"
+REQUIRED_VERSION="v0.6.2-r1"
 
 INSTALLED_VERSION=$(opkg list-installed | grep "^$PACKAGE" | cut -d ' ' -f 3)
 if [ -n "$INSTALLED_VERSION" ] && [ "$INSTALLED_VERSION" != "$REQUIRED_VERSION" ]; then
@@ -1298,9 +1261,9 @@ else
 	if [ "$is_install_podkop" = "y" ] || [ "$is_install_podkop" = "Y" ]; then
 		DOWNLOAD_DIR="/tmp/podkop"
 		mkdir -p "$DOWNLOAD_DIR"
-		podkop_files="podkop_v0.4.11-r1_all.ipk
-			luci-app-podkop_v0.4.11-r1_all.ipk
-			luci-i18n-podkop-ru_0.4.11.ipk"
+		podkop_files="podkop-v0.6.2-r1-all.ipk
+			luci-app-podkop-v0.6.2-r1-all.ipk
+			luci-i18n-podkop-ru-0.6.2.ipk"
 		for file in $podkop_files
 		do
 			echo "Download $file..."
