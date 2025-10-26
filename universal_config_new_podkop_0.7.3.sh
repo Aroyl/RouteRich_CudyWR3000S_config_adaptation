@@ -657,6 +657,7 @@ dhcp
 dns-failsafe-proxy
 stubby"
 URL="https://raw.githubusercontent.com/routerich/RouterichAX3000_configs/refs/heads/podkop07"
+URL2="https://raw.githubusercontent.com/Aroyl/RouteRich_CudyWR3000S_config_adaptation/refs/heads/main"
 
 checkPackageAndInstall "luci-app-dns-failsafe-proxy" "1"
 checkPackageAndInstall "luci-i18n-stubby-ru" "1"
@@ -1277,7 +1278,7 @@ else
 		for file in $podkop_files
 		do
 			echo "Download $file..."
-			wget -q -O "$DOWNLOAD_DIR/$file" "$URL/podkop_packets/$file"
+			wget -q -O "$DOWNLOAD_DIR/$file" "$URL2/podkop_packets/$file"
 		done
 		opkg install $DOWNLOAD_DIR/podkop*.ipk
 		opkg install $DOWNLOAD_DIR/luci-app-podkop*.ipk
