@@ -466,6 +466,9 @@ byPassGeoBlockComssDNS()
 	uci add_list dhcp.cfg01411c.server='/*.recaptcha.net/127.0.0.1#5056'
 	uci add_list dhcp.cfg01411c.server='/*.gstatic.com/127.0.0.1#5056'
 	uci add_list dhcp.cfg01411c.server='/*.brawlstarsgame.com/127.0.0.1#5056'
+	uci add_list dhcp.cfg01411c.server='/*.api.mega.co.nz/127.0.0.1#5056'
+	uci add_list dhcp.cfg01411c.server='/*.userstorage.mega.co.nz/127.0.0.1#5056'
+	uci add_list dhcp.cfg01411c.server='/*.karere.mega.nz/127.0.0.1#5056'
 	uci commit dhcp
 
 	echo "Add unblock ChatGPT..."
